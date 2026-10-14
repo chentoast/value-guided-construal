@@ -19,7 +19,11 @@ logging.basicConfig(stream=sys.stdout)
 logger.setLevel(logging.WARNING)
 
 import os
-DATA_DIRECTORY = "../experiments"
+from pathlib import Path
+
+DATA_DIRECTORY = str(Path(__file__).absolute().parent.parent / "experiments")
+print(DATA_DIRECTORY)
+# DATA_DIRECTORY = "../experiments"
 
 # ========= #
 # Utilities #
@@ -84,6 +88,7 @@ mazes = {
 mods = create_modeling_interface(joblib_cache_location="./_analysiscache")
 model_preds = []
 for grid, tile_array in mazes.items():
+    print(grid)
     for obs in sorted(set("0123456789") & set.union(*[set(r) for r in tile_array])):
         preds = {
             "grid": grid,
@@ -169,7 +174,7 @@ def get_exp1_at():
         if c1 != c2:
             assert not all(exp1_at[c1] == exp1_at[c2])
     return exp1_at
-    
+
 
 # ================= #
 # Experiment 2 Data #
@@ -209,7 +214,7 @@ def get_exp2_at():
     exp2_at['nav_mindist_timestep_Z'] = utils.zscore(exp2_at['nav_mindist_timestep'])
     exp2_at = exp2_at.merge(model_preds)
     return exp2_at
-    
+
 
 # ================= #
 # Experiment 3 Data #
@@ -273,8 +278,8 @@ def get_exp3_at__exp3_mt():
     exp3_mt['relevant'] = exp3_mt['static_vgc_weight'] >= .5
     exp3_mt['critical'] = ~exp3_mt['near'] & exp3_mt['relevant']
     exp3_mt['obs_type'] = exp3_mt.apply(lambda r: 'irrel' if not r['relevant'] else 'crit' if r['critical'] else 'none', axis=1)
-    
-    
+
+
     #sanity check
     n_unique_sid_at = len(exp3_at.sessionId.unique())
     n_unique_mean_rt_at = len(exp3_at.groupby('sessionId')['rt'].mean().unique())
@@ -285,7 +290,7 @@ def get_exp3_at__exp3_mt():
     assert n_unique_sid_mt == n_unique_mean_rt_mt
 
     assert len(set(exp3_at.sessionId) & set(exp3_mt.sessionId)) == 0
-    
+
     return exp3_at, exp3_mt
 
 # ================== #
@@ -297,12 +302,12 @@ def get_exp4a_ht():
     exp4a_ht['obstacle'] = exp4a_ht['obstacle'].apply(lambda o: f"obs-{o}")
     exp4a_ht['grid'] = exp4a_ht['grid'].apply(lambda g: "-".join(g.split("-")[:-1]))
     exp4a_ht = exp4a_ht.merge(model_preds)
-    
+
     # sanity checking
     n_sessionIds = len(exp4a_ht.sessionId.unique())
     n_mean_hoverdur = len(exp4a_ht.groupby('sessionId')['hoverduration'].mean().unique())
     assert n_sessionIds == n_mean_hoverdur
-    
+
     return exp4a_ht
 
 # ================== #
@@ -313,12 +318,12 @@ def get_exp4b_ht():
     exp4b_ht = pd.DataFrame(json.load(open(os.path.join(DATA_DIRECTORY, "exp4b/data/hovering-data-trials.json"), 'r')))
     exp4b_ht['obstacle'] = exp4b_ht['obstacle'].apply(lambda o: f"obs-{o}")
     exp4b_ht = exp4b_ht.merge(model_preds)
-    
+
     # sanity checking
     n_sessionIds = len(exp4b_ht.sessionId.unique())
     n_mean_hoverdur = len(exp4b_ht.groupby('sessionId')['hoverduration'].mean().unique())
     assert n_sessionIds == n_mean_hoverdur
-    
+
     return exp4b_ht
 
 # ================== #
@@ -454,7 +459,7 @@ def get_exp6a_st__exp6a_nt():
     exp6a_nt['grid'] = exp6a_nt['grid'].apply(lambda g: "-".join(g.split('-')[:-1]))
     exp6a_nt['state_traj'] = exp6a_nt['navigationData'].apply(lambda d: [tuple(i['state']) for i in d])
     return exp6a_st, exp6a_nt
-    
+
 @lru_cache()
 def get_exp6a_navdist():
     exp6a_st, exp6a_nt = get_exp6a_st__exp6a_nt()
@@ -463,7 +468,7 @@ def get_exp6a_navdist():
         exp6a_nt.apply(calc_nav_mindist, axis=1)
     ], axis=1).melt(id_vars=['sessionId', 'round', 'grid'], var_name="obstacle", value_name="nav_mindist")
     return exp6a_navdist
-    
+
 @lru_cache()
 def get_exp6a_navdist_timestep():
     exp6a_st, exp6a_nt = get_exp6a_st__exp6a_nt()
@@ -472,7 +477,7 @@ def get_exp6a_navdist_timestep():
         exp6a_nt.apply(calc_nav_mindist_timestep, axis=1)
     ], axis=1).melt(id_vars=['sessionId', 'round', 'grid'], var_name="obstacle", value_name="nav_mindist_timestep")
     return exp6a_navdist_timestep
-    
+
 @lru_cache()
 def get_exp6a_at():
     exp6a_st, exp6a_nt = get_exp6a_st__exp6a_nt()

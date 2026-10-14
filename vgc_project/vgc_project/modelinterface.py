@@ -41,8 +41,10 @@ def create_modeling_interface(
         maze_stats       = mods.maze_obstacle_statistics(tile_array=tile_array, n_simulations=100)
         sr               = mods.successor_representation(tile_array=tile_array)
 
+        print("static vgc")
         static_vgc       = mods.value_guided_construal(tile_array=tile_array, construal_inverse_temp=10, discount_rate=1.0 - 1e-5)
-        dynamic_vgc      = mods.dynamic_vgc(tile_array=tile_array, 
+        print("dynamic vgc")
+        dynamic_vgc      = mods.dynamic_vgc(tile_array=tile_array,
                                             ground_policy_inv_temp=None,
                                             ground_policy_rand_choose=0.,
                                             ground_discount_rate=1.0-1e-5,
